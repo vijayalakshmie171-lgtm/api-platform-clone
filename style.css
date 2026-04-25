@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #1e1e1e;
+  color: #fff;
+}
+
+.navbar {
+  background: #333;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.sidebar {
+  width: 200px;
+  background: #252525;
+  padding: 15px;
+  float: left;
+  height: 100vh;
+}
+
+.main-panel {
+  margin-left: 220px;
+  padding: 20px;
+}
+
+button {
+  background: #0078d7;
+  color: white;
+  border: none;
+  padding: 8px;
+  margin: 5px 0;
+  cursor: pointer;
+}

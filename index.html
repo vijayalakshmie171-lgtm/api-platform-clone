@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>API Platform Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <h1>API Platform</h1>
+    <ul>
+      <li>Dashboard</li>
+      <li>Analytics</li>
+      <li>Notifications</li>
+    </ul>
+    <div class="user">Vijayalakshmi</div>
+  </nav>
+
+  <aside class="sidebar">
+    <h2>Workspace</h2>
+    <button>+ New</button>
+    <button>↓ Export</button>
+
+    <h2>Collections</h2>
+    <button>+ New Collection</button>
+
+    <h2>Saved Requests</h2>
+    <button>Save Current</button>
+  </aside>
+
+  <main class="main-panel">
+    <div class="request-config">
+      <select id="method">
+        <option>GET</option>
+        <option>POST</option>
+        <option>PUT</option>
+        <option>DELETE</option>
+      </select>
+      <input type="text" id="url" placeholder="https://api.example.com/...">
+      <button id="send">Send Request</button>
+    </div>
+
+    <div class="response">
+      <h3>Response</h3>
+      <button>↓ Download</button>
+      <button>Copy</button>
+      <pre id="output"></pre>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
