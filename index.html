@@ -1,53 +1,659 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>API Platform Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vijaya Lakshmi G — ECE Engineer &amp; Software Developer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root{
+  --bg:#0E1512;
+  --surface:#162019;
+  --surface-2:#1B271F;
+  --cream:#F2EEE3;
+  --copper:#CE8352;
+  --copper-dim:#8C5A38;
+  --signal:#6FE7C8;
+  --muted:#8FA396;
+  --line:#2A3A31;
+  --maxw:1080px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--cream);
+  font-family:'IBM Plex Sans', sans-serif;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+::selection{ background:var(--signal); color:#0E1512; }
+
+h1,h2,h3{ font-family:'Space Grotesk', sans-serif; font-weight:700; letter-spacing:-0.01em; }
+.mono{ font-family:'IBM Plex Mono', monospace; }
+
+/* background trace texture */
+.pcb-bg{
+  position:fixed; inset:0; z-index:0; pointer-events:none; opacity:0.35;
+}
+
+/* TOP NAV */
+.topnav{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 32px;
+  background:rgba(14,21,18,0.75);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid transparent;
+  transition:border-color .3s, background .3s;
+}
+.topnav.scrolled{ border-bottom-color:var(--line); background:rgba(14,21,18,0.92); }
+.topnav-logo{
+  font-family:'IBM Plex Mono', monospace; font-size:14px; color:var(--cream);
+  text-decoration:none; letter-spacing:0.03em; display:flex; align-items:center; gap:8px;
+}
+.topnav-logo::before{
+  content:''; width:8px; height:8px; border-radius:50%; background:var(--signal);
+  box-shadow:0 0 8px 2px rgba(111,231,200,0.6);
+}
+.topnav-links{ display:flex; align-items:center; gap:8px; list-style:none; }
+.topnav-links a{
+  font-family:'IBM Plex Mono', monospace; font-size:12.5px; letter-spacing:0.04em; text-transform:uppercase;
+  color:var(--muted); text-decoration:none; padding:8px 14px; border-radius:3px;
+  transition:color .2s, background .2s;
+}
+.topnav-links a:hover{ color:var(--cream); background:var(--surface-2); }
+.topnav-links a.active{ color:var(--signal); }
+.topnav-links a.cta{
+  border:1px solid var(--copper-dim); color:var(--copper); margin-left:6px;
+}
+.topnav-links a.cta:hover{ border-color:var(--copper); background:transparent; color:var(--copper); }
+
+.nav-toggle{
+  display:none; flex-direction:column; gap:5px; background:none; border:none; cursor:pointer; padding:8px;
+  z-index:110;
+}
+.nav-toggle span{ width:22px; height:2px; background:var(--cream); transition:transform .25s, opacity .25s; }
+.nav-toggle.open span:nth-child(1){ transform:translateY(7px) rotate(45deg); }
+.nav-toggle.open span:nth-child(2){ opacity:0; }
+.nav-toggle.open span:nth-child(3){ transform:translateY(-7px) rotate(-45deg); }
+
+@media (max-width:900px){
+  .topnav-links{
+    position:fixed; top:0; right:0; height:100vh; width:min(78vw,320px);
+    background:var(--surface); border-left:1px solid var(--line);
+    flex-direction:column; align-items:flex-start; justify-content:center; gap:6px;
+    padding:40px 32px; transform:translateX(100%); transition:transform .3s ease;
+  }
+  .topnav-links.open{ transform:translateX(0); }
+  .topnav-links a{ font-size:15px; padding:12px 6px; width:100%; }
+  .nav-toggle{ display:flex; }
+}
+
+.nav-scrim{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:90;
+}
+.nav-scrim.open{ display:block; }
+
+/* rail */
+.rail{
+  position:fixed; left:28px; top:70px; bottom:0; width:2px;
+  background:linear-gradient(to bottom, transparent, var(--line) 6%, var(--line) 94%, transparent);
+  z-index:50; display:flex; flex-direction:column; align-items:center;
+}
+.rail-pulse{
+  position:absolute; left:50%; top:0; width:8px; height:8px; margin-left:-4px;
+  border-radius:50%; background:var(--signal);
+  box-shadow:0 0 12px 3px var(--signal);
+  transition: top 0.15s linear;
+}
+.rail-nodes{ position:relative; width:100%; height:100%; }
+.rail-node{
+  position:absolute; left:50%; transform:translate(-50%,-50%);
+  width:11px; height:11px; border-radius:50%;
+  background:var(--bg); border:2px solid var(--line);
+  transition:border-color .3s, background .3s, box-shadow .3s;
+  cursor:pointer;
+}
+.rail-node.active{ border-color:var(--signal); background:var(--signal); box-shadow:0 0 10px 2px rgba(111,231,200,0.6); }
+.rail-node span{
+  position:absolute; left:20px; top:50%; transform:translateY(-50%);
+  font-size:11px; letter-spacing:0.08em; white-space:nowrap; color:var(--muted);
+  opacity:0; transition:opacity .25s; text-transform:uppercase;
+}
+.rail-node:hover span, .rail-node.active span{ opacity:1; color:var(--signal); }
+
+@media (max-width:760px){
+  .rail{ display:none; }
+}
+
+.wrap{ max-width:var(--maxw); margin:0 auto; padding:0 32px; position:relative; z-index:1; }
+@media (max-width:760px){ .wrap{ padding:0 20px; } }
+
+section{ padding:120px 0; position:relative; z-index:1; scroll-margin-top:40px; }
+@media (max-width:760px){ section{ padding:80px 0; } }
+
+/* HERO */
+.hero{
+  min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+  padding-top:80px; padding-bottom:80px;
+  position:relative;
+}
+.eyebrow{
+  color:var(--copper); font-size:13px; letter-spacing:0.16em; text-transform:uppercase;
+  display:flex; align-items:center; gap:10px; margin-bottom:28px;
+}
+.eyebrow::before{ content:''; width:28px; height:1px; background:var(--copper); }
+.hero h1{
+  font-size:clamp(42px, 7vw, 84px); line-height:1.02; margin-bottom:22px;
+}
+.hero h1 .accent{ color:var(--signal); }
+.hero-sub{
+  font-size:clamp(16px,2vw,19px); color:var(--muted); max-width:560px; margin-bottom:44px;
+}
+.hero-links{ display:flex; flex-wrap:wrap; gap:14px; }
+.btn{
+  font-family:'IBM Plex Mono', monospace; font-size:13px; letter-spacing:0.03em;
+  padding:13px 22px; border-radius:2px; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+  transition:transform .2s, box-shadow .2s, background .2s;
+  border:1px solid var(--line);
+  color:var(--cream);
+}
+.btn.primary{ background:var(--signal); color:#0E1512; border-color:var(--signal); font-weight:500; }
+.btn.primary:hover{ transform:translateY(-2px); box-shadow:0 8px 22px -8px rgba(111,231,200,0.5); }
+.btn.ghost:hover{ border-color:var(--copper); color:var(--copper); transform:translateY(-2px); }
+
+.hero-circuit{
+  position:absolute; right:-6%; top:50%; transform:translateY(-50%);
+  width:520px; max-width:48vw; opacity:0.85;
+}
+@media (max-width:900px){ .hero-circuit{ display:none; } }
+
+/* SECTION HEADER */
+.sec-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:48px; }
+.sec-num{ font-family:'IBM Plex Mono', monospace; color:var(--copper-dim); font-size:14px; }
+.sec-head h2{ font-size:clamp(26px,3.4vw,36px); }
+.sec-head::after{ content:''; flex:1; height:1px; background:var(--line); margin-left:8px; }
+
+/* ABOUT */
+.about-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:56px; }
+@media (max-width:760px){ .about-grid{ grid-template-columns:1fr; } }
+.about-text p{ color:var(--muted); font-size:16px; margin-bottom:16px; }
+.about-text strong{ color:var(--cream); font-weight:600; }
+.fact-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:22px 24px;
+  margin-bottom:14px;
+}
+.fact-card .label{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.1em; color:var(--signal); text-transform:uppercase; margin-bottom:6px; }
+.fact-card .value{ font-size:15px; color:var(--cream); }
+
+/* SKILLS - breadboard style */
+.skill-board{
+  background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:36px;
+}
+.skill-group{ margin-bottom:28px; }
+.skill-group:last-child{ margin-bottom:0; }
+.skill-group-title{
+  font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.1em; color:var(--copper);
+  text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:10px;
+}
+.skill-group-title::before{ content:'//'; color:var(--line); }
+.pins{ display:flex; flex-wrap:wrap; gap:10px; }
+.pin{
+  font-family:'IBM Plex Mono', monospace; font-size:13px; padding:9px 14px;
+  border:1px solid var(--line); border-radius:20px; color:var(--muted);
+  position:relative; transition:border-color .25s, color .25s;
+}
+.pin::before{
+  content:''; position:absolute; left:-4px; top:50%; transform:translateY(-50%);
+  width:6px; height:6px; border-radius:50%; background:var(--line);
+}
+.pin:hover{ border-color:var(--signal); color:var(--cream); }
+.pin:hover::before{ background:var(--signal); box-shadow:0 0 6px var(--signal); }
+
+/* EXPERIENCE / PROJECTS TIMELINE */
+.tl-item{
+  border-left:2px solid var(--line); padding:2px 0 40px 32px; position:relative;
+}
+.tl-item:last-child{ padding-bottom:4px; }
+.tl-item::before{
+  content:''; position:absolute; left:-7px; top:4px; width:12px; height:12px;
+  border-radius:50%; background:var(--bg); border:2px solid var(--copper);
+}
+.tl-date{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--copper); letter-spacing:0.05em; margin-bottom:6px; }
+.tl-title{ font-size:20px; margin-bottom:4px; }
+.tl-org{ color:var(--signal); font-size:14px; margin-bottom:14px; font-family:'IBM Plex Mono', monospace; }
+.tl-item ul{ color:var(--muted); padding-left:18px; }
+.tl-item li{ margin-bottom:8px; font-size:15px; }
+.tl-item li::marker{ color:var(--copper-dim); }
+
+/* PROJECT CARDS */
+.proj-grid{ display:grid; grid-template-columns:1fr; gap:20px; }
+.proj-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:30px 32px;
+  transition:border-color .25s, transform .25s;
+}
+.proj-card:hover{ border-color:var(--copper-dim); transform:translateY(-3px); }
+.proj-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:14px;}
+.proj-top h3{ font-size:21px; }
+.proj-date{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--muted); white-space:nowrap; }
+.proj-card ul{ color:var(--muted); padding-left:18px; }
+.proj-card li{ margin-bottom:7px; font-size:14.5px; }
+.proj-card li::marker{ color:var(--signal); }
+.proj-tags{ margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; }
+.tag{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--copper);
+  border:1px solid var(--copper-dim); padding:4px 10px; border-radius:3px;
+}
+
+/* EDUCATION / CERT */
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+@media (max-width:760px){ .two-col{ grid-template-columns:1fr; } }
+.info-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:28px 30px;
+}
+.info-card h3{ font-size:19px; margin-bottom:6px; }
+.info-card .org{ color:var(--signal); font-family:'IBM Plex Mono', monospace; font-size:13px; margin-bottom:14px; }
+.info-card p{ color:var(--muted); font-size:14.5px; margin-bottom:8px; }
+.cgpa-badge{
+  display:inline-block; margin-top:10px; font-family:'IBM Plex Mono', monospace;
+  font-size:13px; color:var(--bg); background:var(--signal); padding:5px 12px; border-radius:3px; font-weight:500;
+}
+
+/* LANGUAGES */
+.lang-row{ display:flex; flex-wrap:wrap; gap:14px; margin-top:8px;}
+.lang-chip{
+  font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--muted);
+  border-left:2px solid var(--copper-dim); padding:4px 0 4px 10px;
+}
+.lang-chip b{ color:var(--cream); }
+
+/* CONTACT / FOOTER */
+.contact{
+  text-align:left;
+}
+.contact h2{ font-size:clamp(32px,5vw,54px); margin-bottom:20px; max-width:640px; }
+.contact p{ color:var(--muted); max-width:520px; margin-bottom:36px; font-size:16px; }
+footer{
+  border-top:1px solid var(--line); padding:32px 0; margin-top:0;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+  font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--muted);
+}
+footer a{ color:var(--muted); text-decoration:none; }
+footer a:hover{ color:var(--signal); }
+
+.reveal{ opacity:0; transform:translateY(24px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.show{ opacity:1; transform:translateY(0); }
+
+@media (prefers-reduced-motion: reduce){
+  .reveal{ opacity:1; transform:none; transition:none; }
+  html{ scroll-behavior:auto; }
+}
+</style>
 </head>
 <body>
-  <nav class="navbar">
-    <h1>API Platform</h1>
-    <ul>
-      <li>Dashboard</li>
-      <li>Analytics</li>
-      <li>Notifications</li>
-    </ul>
-    <div class="user">Vijayalakshmi</div>
-  </nav>
 
-  <aside class="sidebar">
-    <h2>Workspace</h2>
-    <button>+ New</button>
-    <button>↓ Export</button>
+<nav class="topnav" id="topnav">
+  <a href="#hero" class="topnav-logo">vijayalakshmi.dev</a>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="topnav-links" id="navLinks">
+    <li><a href="#hero" data-id="hero">Home</a></li>
+    <li><a href="#about" data-id="about">About</a></li>
+    <li><a href="#skills" data-id="skills">Skills</a></li>
+    <li><a href="#experience" data-id="experience">Experience</a></li>
+    <li><a href="#projects" data-id="projects">Projects</a></li>
+    <li><a href="#education" data-id="education">Education</a></li>
+    <li><a href="#contact" data-id="contact" class="cta">Contact</a></li>
+  </ul>
+</nav>
+<div class="nav-scrim" id="navScrim"></div>
 
-    <h2>Collections</h2>
-    <button>+ New Collection</button>
+<canvas class="pcb-bg" id="pcbCanvas"></canvas>
 
-    <h2>Saved Requests</h2>
-    <button>Save Current</button>
-  </aside>
+<div class="rail">
+  <div class="rail-nodes" id="railNodes"></div>
+  <div class="rail-pulse" id="railPulse"></div>
+</div>
 
-  <main class="main-panel">
-    <div class="request-config">
-      <select id="method">
-        <option>GET</option>
-        <option>POST</option>
-        <option>PUT</option>
-        <option>DELETE</option>
-      </select>
-      <input type="text" id="url" placeholder="https://api.example.com/...">
-      <button id="send">Send Request</button>
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div class="eyebrow mono">ECE Engineer × Software Developer</div>
+    <h1>Vijaya Lakshmi G<br><span class="accent">builds where circuits meet code.</span></h1>
+    <p class="hero-sub">Final-year Electronics &amp; Communication Engineering student with a strong foundation in Core Java, J2EE, SQL and embedded systems — 130+ hours of advanced Java training, and hands-on experience shipping full-stack platforms and IoT devices.</p>
+    <div class="hero-links">
+      <a class="btn primary" href="mailto:vijayalakshmie171@gmail.com">Email me →</a>
+      <a class="btn ghost" href="https://linkedin.com/in/vijaya-lakshmi-g" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn ghost" href="#projects">View Projects</a>
     </div>
+  </div>
+  <svg class="hero-circuit" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="#2A3A31" stroke-width="1.5">
+      <path d="M20 60 H140 V140 H260 V60 H380"/>
+      <path d="M20 160 H90 V260 H200"/>
+      <path d="M200 260 V340 H340 V220 H260"/>
+      <path d="M380 300 H300 V180 H180"/>
+      <path d="M20 340 H120 V380"/>
+    </g>
+    <g fill="#CE8352">
+      <circle cx="140" cy="60" r="4"/>
+      <circle cx="260" cy="140" r="4"/>
+      <circle cx="90" cy="160" r="4"/>
+      <circle cx="200" cy="260" r="4"/>
+      <circle cx="340" cy="220" r="4"/>
+      <circle cx="180" cy="180" r="4"/>
+    </g>
+    <g fill="#6FE7C8">
+      <circle cx="20" cy="60" r="5"><animate attributeName="opacity" values="1;0.3;1" dur="2.4s" repeatCount="indefinite"/></circle>
+      <circle cx="380" cy="60" r="5"><animate attributeName="opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite"/></circle>
+      <circle cx="20" cy="340" r="5"><animate attributeName="opacity" values="1;0.3;1" dur="2.8s" repeatCount="indefinite"/></circle>
+      <circle cx="340" cy="220" r="3"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle>
+    </g>
+  </svg>
+</section>
 
-    <div class="response">
-      <h3>Response</h3>
-      <button>↓ Download</button>
-      <button>Copy</button>
-      <pre id="output"></pre>
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num mono">01</span><h2>About</h2></div>
+    <div class="about-grid reveal">
+      <div class="about-text">
+        <p>I'm a final-year <strong>Electronics and Communication Engineering</strong> student at Basaveshwar Engineering College, Bagalkot — with a foot firmly in both hardware and software. My coursework spans <strong>Core Java, Data Structures &amp; Algorithms, Object-Oriented Programming, SQL and Database Systems</strong>, and I've backed that up with 130+ hours of advanced Java training.</p>
+        <p>Recently I worked as a <strong>Full Stack Web Developer Intern</strong>, building a Postman-style API testing platform end to end. Outside of web development, I've designed <strong>embedded systems</strong> for real-time traffic control and low-power GPS tracking — proof that I'm comfortable moving between a debugger and an oscilloscope.</p>
+        <p>I'm actively seeking roles as a <strong>Java Developer, Software Engineer, or Full Stack Developer</strong>.</p>
+      </div>
+      <div class="about-facts">
+        <div class="fact-card"><div class="label mono">Location</div><div class="value">Bagalkot, Karnataka, India</div></div>
+        <div class="fact-card"><div class="label mono">CGPA</div><div class="value">8.37 / 10.0</div></div>
+        <div class="fact-card"><div class="label mono">Languages</div><div class="value">English · Kannada · Hindi · Telugu</div></div>
+        <div class="fact-card"><div class="label mono">Focused On</div><div class="value">Java Developer · SDE · Full Stack</div></div>
+      </div>
     </div>
-  </main>
+  </div>
+</section>
 
-  <script src="script.js"></script>
+<!-- SKILLS -->
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num mono">02</span><h2>Technical Skills</h2></div>
+    <div class="skill-board reveal">
+      <div class="skill-group">
+        <div class="skill-group-title">Languages &amp; Core</div>
+        <div class="pins">
+          <div class="pin">Core Java</div><div class="pin">OOP</div><div class="pin">Data Structures &amp; Algorithms</div><div class="pin">Problem Solving</div>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">J2EE &amp; Java Tech</div>
+        <div class="pins">
+          <div class="pin">JDBC</div><div class="pin">Servlets</div><div class="pin">Collections Framework</div><div class="pin">Exception Handling</div><div class="pin">Multithreading</div>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Web &amp; Database</div>
+        <div class="pins">
+          <div class="pin">HTML</div><div class="pin">CSS</div><div class="pin">SQL</div>
+        </div>
+      </div>
+      <div class="skill-group">
+        <div class="skill-group-title">Tools &amp; Practice</div>
+        <div class="pins">
+          <div class="pin">IntelliJ IDEA</div><div class="pin">Git</div><div class="pin">JWT Auth</div><div class="pin">REST APIs</div><div class="pin">Technical Documentation</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section id="experience">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num mono">03</span><h2>Experience</h2></div>
+    <div class="reveal">
+      <div class="tl-item">
+        <div class="tl-date mono">FEB 2026 — MAY 2026</div>
+        <div class="tl-title">Full Stack Web Developer Intern</div>
+        <div class="tl-org">VrishankSoft (OPC) Pvt. Ltd.</div>
+        <ul>
+          <li>Developed a full-stack API Testing and Collaboration Web Platform using React.js, Node.js, Express.js and MongoDB.</li>
+          <li>Built secure REST APIs with JWT authentication and implemented CRUD operations for API collections and project management.</li>
+          <li>Designed responsive frontend interfaces and integrated backend services for seamless API testing workflows.</li>
+          <li>Developed collaboration features enabling teams to share API collections and manage projects efficiently.</li>
+          <li>Optimized application performance through debugging, testing and code improvements while using Git for version control.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num mono">04</span><h2>Projects</h2></div>
+    <div class="proj-grid reveal">
+
+      <div class="proj-card">
+        <div class="proj-top">
+          <h3>API Testing &amp; Collaboration Web Platform</h3>
+          <div class="proj-date mono">2025 — 2026</div>
+        </div>
+        <ul>
+          <li>Built a Postman-like web app for testing, managing and organizing REST APIs — supporting GET, POST, PUT, PATCH and DELETE requests.</li>
+          <li>Implemented secure JWT-based authentication, workspace management, collections and request versioning for organized, secure collaboration.</li>
+          <li>Shipped API analytics, a mock server, notifications, comments, environment variables, and AI-assisted request generation &amp; debugging.</li>
+          <li>Designed a responsive UI integrated with a Flask backend and SQLite database for seamless API execution.</li>
+        </ul>
+        <div class="proj-tags">
+          <span class="tag">Flask</span><span class="tag">SQLite</span><span class="tag">JWT</span><span class="tag">REST</span><span class="tag">AI Assistant</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-top">
+          <h3>Geofencing with Smart Signal &amp; Ambulance Priority System</h3>
+          <div class="proj-date mono">2025 — 2026</div>
+        </div>
+        <ul>
+          <li>Designed a real-time, event-driven system to automate traffic signal control for emergency vehicles using RFID detection.</li>
+          <li>Developed controller logic algorithms to override normal traffic workflows based on live input events.</li>
+          <li>Built ESP32-based data acquisition software to collect, process and validate live sensor data.</li>
+          <li>Implemented cloud integration via HTTP APIs to upload and visualize real-time data on ThingSpeak.</li>
+        </ul>
+        <div class="proj-tags">
+          <span class="tag">ESP32</span><span class="tag">RFID</span><span class="tag">ThingSpeak</span><span class="tag">IoT</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-top">
+          <h3>Low-Power GSM/GPS Tracking Device</h3>
+          <div class="proj-date mono">2023 — 2024</div>
+        </div>
+        <ul>
+          <li>Designed an energy-efficient location tracking device integrating GSM and GPS modules for real-time communication and positioning.</li>
+          <li>Optimized power consumption through intelligent sleep modes and efficient data transmission — extending battery life by 40%.</li>
+          <li>Developed embedded firmware in C for sensor data processing, communication protocols and error handling.</li>
+          <li>Resolved hardware-software integration challenges across multiple technology stacks.</li>
+        </ul>
+        <div class="proj-tags">
+          <span class="tag">C</span><span class="tag">GSM</span><span class="tag">GPS</span><span class="tag">Embedded Firmware</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- EDUCATION & CERTS -->
+<section id="education">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num mono">05</span><h2>Education &amp; Certifications</h2></div>
+    <div class="two-col reveal">
+      <div class="info-card">
+        <h3>B.E. — Electronics &amp; Communication Engineering</h3>
+        <div class="org">Basaveshwar Engineering College (Autonomous), Bagalkot · 2022 – 2026</div>
+        <p>Relevant coursework: Core Java, Data Structures &amp; Algorithms, Object-Oriented Programming, SQL, Database Systems.</p>
+        <div class="cgpa-badge">CGPA 8.37 / 10.0</div>
+      </div>
+      <div class="info-card">
+        <h3>Java Masterclass 2025</h3>
+        <div class="org">Udemy · 130+ Hours</div>
+        <p>Core Java, Advanced OOP, Collections Framework, Exception Handling, Multithreading, Java Best Practices.</p>
+        <div class="lang-row" style="margin-top:18px;">
+          <div class="lang-chip"><b>Interests —</b> Open Source, Competitive Programming, HW/SW Integration</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap contact">
+    <div class="sec-head"><span class="sec-num mono">06</span><h2 style="border:none;">Get in touch</h2></div>
+    <h2 class="reveal">Let's build something that actually ships.</h2>
+    <p class="reveal">Open to Java Developer, Software Engineer and Full Stack roles. Reach out — I reply fast.</p>
+    <div class="hero-links reveal">
+      <a class="btn primary" href="mailto:vijayalakshmie171@gmail.com">vijayalakshmie171@gmail.com</a>
+      <a class="btn ghost" href="tel:+918073609033">+91-8073609033</a>
+      <a class="btn ghost" href="https://linkedin.com/in/vijaya-lakshmi-g" target="_blank" rel="noopener">LinkedIn ↗</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; width:100%;">
+    <span>© 2026 Vijaya Lakshmi G</span>
+    <span>Bagalkot, Karnataka, India</span>
+  </div>
+</footer>
+
+<script>
+// Top nav behavior
+const topnav = document.getElementById('topnav');
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
+const navScrim = document.getElementById('navScrim');
+const navLinkEls = navLinks.querySelectorAll('a');
+
+function closeNav(){
+  navToggle.classList.remove('open');
+  navLinks.classList.remove('open');
+  navScrim.classList.remove('open');
+  navToggle.setAttribute('aria-expanded','false');
+}
+navToggle.addEventListener('click', () => {
+  const isOpen = navLinks.classList.toggle('open');
+  navToggle.classList.toggle('open', isOpen);
+  navScrim.classList.toggle('open', isOpen);
+  navToggle.setAttribute('aria-expanded', String(isOpen));
+});
+navScrim.addEventListener('click', closeNav);
+navLinkEls.forEach(a => a.addEventListener('click', closeNav));
+
+function updateTopnav(){
+  topnav.classList.toggle('scrolled', window.scrollY > 20);
+}
+window.addEventListener('scroll', updateTopnav, {passive:true});
+updateTopnav();
+
+// Section rail nodes
+const sections = [
+  {id:'hero', label:'Home'},
+  {id:'about', label:'About'},
+  {id:'skills', label:'Skills'},
+  {id:'experience', label:'Experience'},
+  {id:'projects', label:'Projects'},
+  {id:'education', label:'Education'},
+  {id:'contact', label:'Contact'}
+];
+const railNodes = document.getElementById('railNodes');
+const nodeEls = sections.map((s, i) => {
+  const el = document.createElement('div');
+  el.className = 'rail-node';
+  el.style.top = (i / (sections.length - 1) * 100) + '%';
+  el.innerHTML = '<span class="mono">' + s.label + '</span>';
+  el.addEventListener('click', () => {
+    document.getElementById(s.id).scrollIntoView({behavior:'smooth'});
+  });
+  railNodes.appendChild(el);
+  return el;
+});
+
+const pulse = document.getElementById('railPulse');
+const railEl = document.querySelector('.rail');
+
+function updateRail(){
+  const railHeight = railEl.clientHeight;
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = Math.min(Math.max(scrollTop / docHeight, 0), 1);
+  pulse.style.top = (progress * railHeight) + 'px';
+
+  let activeIdx = 0;
+  sections.forEach((s, i) => {
+    const el = document.getElementById(s.id);
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.5) activeIdx = i;
+  });
+  nodeEls.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+
+  const activeId = sections[activeIdx].id;
+  navLinkEls.forEach(a => a.classList.toggle('active', a.dataset.id === activeId));
+}
+window.addEventListener('scroll', updateRail, {passive:true});
+window.addEventListener('resize', updateRail);
+updateRail();
+
+// Reveal on scroll
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('show');
+      io.unobserve(entry.target);
+    }
+  });
+}, {threshold:0.15});
+revealEls.forEach(el => io.observe(el));
+
+// Ambient PCB canvas background
+const canvas = document.getElementById('pcbCanvas');
+const ctx = canvas.getContext('2d');
+let w, h;
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = document.documentElement.scrollHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+function drawPCB(){
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle = 'rgba(42,58,49,0.55)';
+  ctx.lineWidth = 1;
+  const gap = 140;
+  for (let y0 = 80; y0 < h; y0 += gap) {
+    ctx.beginPath();
+    let x = 0;
+    let curY = y0;
+    ctx.moveTo(x, curY);
+    while (x < w) {
+      const seg = 60 + Math.random()*40;
+      const dir = Math.random() > 0.5 ? 1 : -1;
+      x += seg;
+      curY += dir*20;
+      ctx.lineTo(x, curY);
+    }
+    ctx.stroke();
+  }
+}
+drawPCB();
+</script>
+
 </body>
 </html>
